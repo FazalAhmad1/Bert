@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChatGPT Feedback Analyzer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        h1 {
+            color: #2d3436;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .input-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-box:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+
+        .analyze-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .analyze-btn:hover {
+            background: #5b4bc4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 92, 231, 0.3);
+        }
+
+        .result-box {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .result-box.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .dot-pulse {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin: 0 4px;
+            background: #6c5ce7;
+            border-radius: 50%;
+            animation: dotPulse 1.4s infinite ease-in-out;
+        }
+
+        @keyframes dotPulse {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 ChatGPT Feedback Analyzer</h1>
+        
+        <textarea 
+            id="inputText" 
+            class="input-box" 
+            rows="5" 
+            placeholder="Type or paste your ChatGPT feedback here..."
+        ></textarea>
+        
+        <div class="error" id="errorMessage">Please enter some text to analyze!</div>
+        
+        <button class="analyze-btn" onclick="analyze()">
+            🔍 Analyze Feedback
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="dot-pulse"></div>
+            <div class="dot-pulse"></div>
+            <div class="dot-pulse"></div>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <h3>Analysis Result:</h3>
+            <div id="result" class="result-text"></div>
+        </div>
+    </div>
+
+    <script>
+        async function analyze() {
+            const text = document.getElementById("inputText").value.trim();
+            const errorElement = document.getElementById("errorMessage");
+            const resultBox = document.getElementById("resultBox");
+            const loading = document.getElementById("loading");
+
+            // Reset states
+            errorElement.style.display = 'none';
+            resultBox.classList.remove('show');
+            
+            if (!text) {
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            try {
+                loading.style.display = 'block';
+                
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text })
+                });
+
+                if (!response.ok) throw new Error('Analysis failed');
+                
+                const data = await response.json();
+                
+                // Update result with animation
+                const resultElement = document.getElementById("result");
+                resultElement.innerHTML = data.prediction; // Note: Typo in original code (prediction vs. predication)
+                resultElement.className = `result-text ${data.prediction.toLowerCase()}`;
+                
+                loading.style.display = 'none';
+                resultBox.classList.add('show');
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                errorElement.textContent = 'Error analyzing feedback. Please try again.';
+                errorElement.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
